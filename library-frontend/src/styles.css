@@ -21,6 +21,13 @@ button {
   cursor: pointer;
 }
 
+nav {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background: #dfe7ed;
+  border-radius: 0.4rem;
+}
+
 table {
   width: 100%;
   max-width: 42rem;
@@ -62,6 +69,12 @@ select {
   grid-template-columns: 1fr auto;
   align-items: end;
   gap: 0.5rem;
+}
+
+.genre-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
 [role="alert"] {

@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 
 import { ALL_AUTHORS, EDIT_AUTHOR } from '../queries'
 
-const Authors = ({ show }) => {
+const Authors = ({ show, loggedIn }) => {
   const [name, setName] = useState('')
   const [born, setBorn] = useState('')
   const result = useQuery(ALL_AUTHORS)
@@ -61,37 +61,42 @@ const Authors = ({ show }) => {
         </tbody>
       </table>
 
-      <h2>set birthyear</h2>
-      <form onSubmit={submit}>
-        <label>
-          name
-          <select
-            value={selectedName}
-            onChange={({ target }) => setName(target.value)}
-          >
-            {authors.map((author) => (
-              <option key={author.name} value={author.name}>
-                {author.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          born
-          <input
-            type="number"
-            value={born}
-            onChange={({ target }) => setBorn(target.value)}
-            required
-          />
-        </label>
-        <button type="submit" disabled={mutationResult.loading}>
-          update author
-        </button>
-        {mutationResult.error && (
-          <p role="alert">could not update author</p>
-        )}
-      </form>
+      {loggedIn && (
+        <>
+          <h2>Set birthyear</h2>
+          <form onSubmit={submit}>
+            <label>
+              name
+              <select
+                name="name"
+                value={selectedName}
+                onChange={({ target }) => setName(target.value)}
+              >
+                {authors.map((author) => (
+                  <option key={author.id} value={author.name}>
+                    {author.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              born
+              <input
+                type="number"
+                value={born}
+                onChange={({ target }) => setBorn(target.value)}
+                required
+              />
+            </label>
+            <button type="submit" disabled={mutationResult.loading}>
+              update author
+            </button>
+            {mutationResult.error && (
+              <p role="alert">could not update author</p>
+            )}
+          </form>
+        </>
+      )}
     </div>
   )
 }

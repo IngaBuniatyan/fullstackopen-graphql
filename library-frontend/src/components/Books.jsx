@@ -1,27 +1,62 @@
+import { useMemo, useState } from 'react'
 import { useQuery } from '@apollo/client/react'
 
 import { ALL_BOOKS } from '../queries'
 
 const Books = ({ show }) => {
-  const result = useQuery(ALL_BOOKS)
+  const [selectedGenre, setSelectedGenre] = useState('')
+  const allBooksResult = useQuery(ALL_BOOKS, {
+    variables: { genre: null },
+    fetchPolicy: 'cache-and-network',
+  })
+  const filteredResult = useQuery(ALL_BOOKS, {
+    variables: { genre: selectedGenre },
+    skip: !selectedGenre,
+    fetchPolicy: 'network-only',
+  })
+
+  const genres = useMemo(() => {
+    const books = allBooksResult.data?.allBooks ?? []
+    return [...new Set(books.flatMap((book) => book.genres))].sort()
+  }, [allBooksResult.data])
 
   if (!show) {
     return null
   }
 
-  if (result.loading) {
+  const activeResult = selectedGenre ? filteredResult : allBooksResult
+
+  if (activeResult.loading && !activeResult.data) {
     return <p>loading books...</p>
   }
 
-  if (result.error) {
+  if (activeResult.error) {
     return <p role="alert">could not load books</p>
   }
 
-  const books = result.data.allBooks
+  const books = activeResult.data?.allBooks ?? []
+
+  const chooseGenre = async (genre) => {
+    if (genre === selectedGenre && genre) {
+      await filteredResult.refetch({ genre })
+      return
+    }
+
+    setSelectedGenre(genre)
+    if (!genre) {
+      await allBooksResult.refetch({ genre: null })
+    }
+  }
 
   return (
-    <div>
+    <section>
       <h2>books</h2>
+
+      {selectedGenre && (
+        <p>
+          <span>in genre</span> <strong>{selectedGenre}</strong>
+        </p>
+      )}
 
       <table>
         <thead>
@@ -32,16 +67,25 @@ const Books = ({ show }) => {
           </tr>
         </thead>
         <tbody>
-          {books.map((a) => (
-            <tr key={a.title}>
-              <td>{a.title}</td>
-              <td>{a.author}</td>
-              <td>{a.published}</td>
+          {books.map((book) => (
+            <tr key={book.id}>
+              <td>{book.title}</td>
+              <td>{book.author.name}</td>
+              <td>{book.published}</td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
+
+      <div className="genre-buttons" aria-label="filter books by genre">
+        {genres.map((genre) => (
+          <button key={genre} onClick={() => chooseGenre(genre)}>
+            {genre}
+          </button>
+        ))}
+        <button onClick={() => chooseGenre('')}>all genres</button>
+      </div>
+    </section>
   )
 }
 
